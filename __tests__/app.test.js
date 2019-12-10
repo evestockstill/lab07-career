@@ -10,9 +10,23 @@ describe('app routes', () => {
   beforeAll(() => {
     connect();
   });
-
   beforeEach(() => {
     return mongoose.connection.dropDatabase();
+  });
+  let recipe;
+  beforeEach(async() => {
+    recipe = await Recipe.create({
+      name: 'cookies',
+      ingredients: [
+        { amount: 2, measurement: 'cups', name: 'flour' }
+      ],
+      directions: [
+        'preheat oven to 375',
+        'mix ingredients',
+        'put dough on cookie sheet',
+        'bake for 10 minutes'
+      ]
+    });
   });
 
   afterAll(() => {
@@ -24,6 +38,9 @@ describe('app routes', () => {
       .post('/api/v1/recipes')
       .send({
         name: 'cookies',
+        ingredients: [
+          { amount: 2, measurement: 'cups', name: 'flour' }
+        ],
         directions: [
           'preheat oven to 375',
           'mix ingredients',
@@ -35,6 +52,9 @@ describe('app routes', () => {
         expect(res.body).toEqual({
           _id: expect.any(String),
           name: 'cookies',
+          ingredients: [
+            { _id: expect.any(String), amount: 2, measurement: 'cups', name: 'flour' }
+          ],
           directions: [
             'preheat oven to 375',
             'mix ingredients',
@@ -66,23 +86,90 @@ describe('app routes', () => {
   });
 
   it('updates a recipe by id', async() => {
-    const recipe = await Recipe.create({
-      name: 'cookies',
-      directions: [
-        'preheat oven to 375',
-        'mix ingredients',
-        'put dough on cookie sheet',
-        'bake for 10 minutes'
-      ],
-    });
-
     return request(app)
       .patch(`/api/v1/recipes/${recipe._id}`)
-      .send({ name: 'good cookies' })
+      .send({ 
+        name: 'good cookies' })
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.any(String),
           name: 'good cookies',
+          ingredients: [
+            { _id: expect.any(String), amount: 2, measurement: 'cups', name: 'flour' }
+          ],
+          directions: [
+            'preheat oven to 375',
+            'mix ingredients',
+            'put dough on cookie sheet',
+            'bake for 10 minutes'
+          ],
+          __v: 0
+        });
+      });
+  });
+  it('gets a recipe by id', async()=> {
+    return request(app)
+  
+      .get(`/api/v1/recipes/${recipe._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.any(String),
+          name: 'cookies',
+          ingredients: [
+            { _id: expect.any(String), amount: 2, measurement: 'cups', name: 'flour' }
+          ],
+          directions: [
+            'preheat oven to 375',
+            'mix ingredients',
+            'put dough on cookie sheet',
+            'bake for 10 minutes'
+          ],
+          __v: 0
+        });
+      });
+  });
+  it('deletes a recipe by id', async()=> {
+    return request(app)
+      .delete(`/api/v1/recipes/${recipe._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: recipe._id.toString(),
+          name: 'cookies',
+          ingredients: [
+            { _id: expect.any(String), amount: 2, measurement: 'cups', name: 'flour' }
+          ],
+          directions: [
+            'preheat oven to 375',
+            'mix ingredients',
+            'put dough on cookie sheet',
+            'bake for 10 minutes'
+          ],
+          __v:0
+        });
+      });
+  });
+  it('updates a whole recipe by id', async() => {
+    return request(app)
+      .put(`/api/v1/recipes/${recipe._id}`)
+      .send({
+        name: 'good cookies',
+        ingredients: [
+          { amount: 2, measurement: 'cups', name: 'flour' }
+        ],
+        directions: [
+          'preheat oven to 375',
+          'mix ingredients',
+          'put dough on cookie sheet',
+          'bake for 10 minutes'
+        ]
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: recipe._id.toString(),
+          name: 'good cookies',
+          ingredients: [
+            { _id: expect.any(String), amount: 2, measurement: 'cups', name: 'flour' }
+          ],
           directions: [
             'preheat oven to 375',
             'mix ingredients',
@@ -94,3 +181,4 @@ describe('app routes', () => {
       });
   });
 });
+
